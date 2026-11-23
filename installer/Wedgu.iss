@@ -1,20 +1,23 @@
 ; Inno Setup script for Wireless Battery (https://jrsoftware.org/isinfo.php).
 ; Per-user install by default: no administrator rights needed, installs to %LOCALAPPDATA%\Programs.
 ; Setup also offers "Install for all users" (Program Files, needs administrator rights).
-; Build with installer\build-installer.ps1 (or: ISCC /DAppVersion=1.2.3 installer\WirelessBattery.iss).
+; Build with installer\build-installer.ps1 (or: ISCC /DAppVersion=1.2.3 installer\Wedgu.iss).
 
 #ifndef AppVersion
-  #define AppVersion "1.0.4.4"
+  #define AppVersion "1.1.0"
 #endif
 #define Root ".."
 
 [Setup]
 AppId={{94C9E086-B026-4D0E-AC3F-21F39E49A2D2}
-AppName=Wireless Battery Windows Style
+AppName=Wedgu
 AppVersion={#AppVersion}
-AppVerName=Wireless Battery Windows Style {#AppVersion}
-AppPublisher=Wireless Battery contributors - Windows Style fork
-DefaultDirName={autopf}\Wireless Battery Windows Style
+AppVerName=Wedgu {#AppVersion}
+AppPublisher=unioneon and Wireless Battery contributors
+AppPublisherURL=https://github.com/unioneon/
+AppSupportURL=https://github.com/unioneon/Wedgu/issues
+AppUpdatesURL=https://github.com/unioneon/Wedgu/releases
+DefaultDirName={autopf}\Wedgu
 DisableProgramGroupPage=yes
 DisableDirPage=auto
 PrivilegesRequired=lowest
@@ -23,33 +26,42 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 OutputDir={#Root}\dist
-OutputBaseFilename=WirelessBattery-WindowsStyle-Setup-{#AppVersion}
+OutputBaseFilename=Wedgu-Setup-{#AppVersion}
 SetupIconFile={#Root}\res\app.ico
-UninstallDisplayIcon={app}\WirelessBattery.exe
-UninstallDisplayName=Wireless Battery Windows Style
+UninstallDisplayIcon={app}\Wedgu.exe
+UninstallDisplayName=Wedgu
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 CloseApplications=no
+LicenseFile={#Root}\LICENSE
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
-Name: "autostart"; Description: "Start Wireless Battery when I sign in to Windows"
+Name: "autostart"; Description: "Start Wedgu when I sign in to Windows"
 
 [Files]
-Source: "{#Root}\WirelessBattery.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Root}\Wedgu.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Root}\third_party\headsetcontrol\headsetcontrol.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Root}\vendor\json-LICENSE.txt"; DestDir: "{app}"; DestName: "json-LICENSE.txt"; Flags: ignoreversion
 Source: "{#Root}\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 Source: "{#Root}\installer\THIRD_PARTY_NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#Root}\installer\README-AJAZZ.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion
+Source: "{#Root}\installer\README.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion
+
+[InstallDelete]
+Type: files; Name: "{app}\WirelessBattery.exe"
 
 [Icons]
-Name: "{autoprograms}\Wireless Battery Windows Style"; Filename: "{app}\WirelessBattery.exe"
+Name: "{autoprograms}\Wedgu"; Filename: "{app}\Wedgu.exe"
 
 [Run]
-Filename: "{app}\WirelessBattery.exe"; Description: "Start Wireless Battery now"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Wedgu.exe"; Description: "Start Wedgu now"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
-Filename: "{app}\WirelessBattery.exe"; Parameters: "--quit"; Flags: runhidden waituntilterminated; RunOnceId: "QuitApp"
+Filename: "{app}\Wedgu.exe"; Parameters: "--quit"; Flags: runhidden waituntilterminated; RunOnceId: "QuitApp"
 
 [Code]
 const
@@ -61,11 +73,13 @@ var
 begin
   if FileExists(ExpandConstant('{app}\WirelessBattery.exe')) then
     Exec(ExpandConstant('{app}\WirelessBattery.exe'), '--quit', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  if FileExists(ExpandConstant('{app}\Wedgu.exe')) then
+    Exec(ExpandConstant('{app}\Wedgu.exe'), '--quit', '', SW_HIDE, ewWaitUntilTerminated, Code);
 end;
 
 function InstalledRunValue(): String;
 begin
-  Result := '"' + ExpandConstant('{app}\WirelessBattery.exe') + '"';
+  Result := '"' + ExpandConstant('{app}\Wedgu.exe') + '"';
 end;
 
 { Removes the startup entry only if it points at this installed copy, so a portable copy's

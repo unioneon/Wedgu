@@ -26,7 +26,7 @@ Lofree Flow Lite84 через 2,4 ГГц, AJAZZ AK820 Pro через Bluetooth, 
 
 Перед запуском новой сборки закройте старую через **Exit**. Для строки с иконками выберите **Show on the taskbar (icon + percentage)**. Если Lofree спит, нажмите на ней несколько клавиш и выберите **Refresh now**.
 
-Исходники этой сборки доступны по тегу релиза, в стандартных архивах **Source code**. Полный перечень изменений — в [CHANGELOG](https://github.com/unioneon/WirelessBattery-Windows-Style/blob/windows-style/CHANGELOG.md).
+Исходники этой сборки доступны по тегу релиза, в стандартных архивах **Source code**. Полный перечень изменений — в [CHANGELOG](https://github.com/unioneon/Wedgu/blob/windows-style/CHANGELOG.md).
 
 ---
 

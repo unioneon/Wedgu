@@ -14,21 +14,32 @@
 
 #include "devices.h"
 #include "widget.h"
+#include "app_settings.h"
+#include "environment.h"
+#include "settings_ui.h"
+#include "i18n.h"
+#include "lockscreen.h"
+#include <gdiplus.h>
+#include <atomic>
+#include "typography.h"
+#include "appearance.h"
+#include "app_date.h"
 
 namespace {
 
 constexpr UINT WM_TRAY = WM_APP + 1;
 constexpr UINT WM_RESULTS = WM_APP + 2;
 constexpr UINT WM_WIDGET_CLICK = WM_APP + 3;
+constexpr UINT WM_ENV=WM_APP+4, WM_SETTINGS=WM_APP+5, WM_LOCK=WM_APP+6, WM_OPEN_SETTINGS=WM_APP+7;
 constexpr UINT_PTR TIMER_DEBOUNCE = 1;
 constexpr UINT_PTR TIMER_WIDGET = 2;
 constexpr DWORD POLL_INTERVAL_MS = 60 * 1000;
 constexpr int LOW_BATTERY = 15;
 constexpr UINT PLACEHOLDER_ID = 1;
 
-enum MenuId : UINT { ID_REFRESH = 100, ID_AUTOSTART, ID_EXIT, ID_MODE_WIDGET, ID_MODE_TRAY, ID_DEVICE_FIRST = 1000 };
+enum MenuId : UINT { ID_REFRESH = 100, ID_AUTOSTART, ID_EXIT, ID_MODE_WIDGET, ID_MODE_TRAY, ID_SETTINGS, ID_DEVICES, ID_BACK, ID_DEVICE_FIRST = 1000 };
 
-const wchar_t* kAppName = L"Wireless Battery";
+const wchar_t* kAppName = L"Wedgu";
 const wchar_t* kRunKey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Run";
 const wchar_t* kRunValue = L"WirelessBattery";
 
@@ -39,6 +50,15 @@ HWND g_hwnd;
 HANDLE g_refreshEvt, g_stopEvt, g_worker;
 UINT g_taskbarCreatedMsg;
 bool g_lightTaskbar;
+AppSettings g_config;
+environment::Snapshot g_environment;
+std::vector<WidgetItem> g_displayItems;
+std::wstring g_lockStatus;
+std::atomic<DWORD> g_pollInterval{POLL_INTERVAL_MS};
+HANDLE g_environmentWorker=nullptr,g_environmentEvt=nullptr;
+HICON g_environmentIcons[2]{};bool g_environmentAdded[2]{};
+HICON g_dateIcon=nullptr;bool g_dateAdded=false;std::wstring g_lastDate;
+std::wstring ProviderStatus(){return L"IQAir: "+(g_environment.air.valid?std::to_wstring(g_environment.air.value)+L" · ":L"")+g_environment.air.detail+L"\nПогода: "+g_environment.weather.detail+L"\n"+g_lockStatus;}
 bool g_wantWidget = true;  // user's choice: taskbar widget (default) or tray icons
 bool g_useWidget = false;  // what is actually shown right now
 
@@ -53,6 +73,7 @@ struct TrayEntry {
     HICON icon = nullptr;
 };
 std::map<std::wstring, TrayEntry> g_entries;
+std::vector<std::wstring> g_menuDeviceKeys;
 bool g_placeholder = false;
 HICON g_placeholderIcon = nullptr;
 
@@ -165,7 +186,7 @@ HICON RenderIcon(const std::wstring& text, int barPct, Rgb textColor, Rgb barCol
     int bx0 = 0, by0 = 0, bx1 = -1, by1 = -1;
     for (int fh = textH * 2; fh >= 6; fh--) {
         HFONT f = CreateFontW(-fh, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                              ANTIALIASED_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+                              ANTIALIASED_QUALITY, DEFAULT_PITCH, typography::Family());
         HGDIOBJ oldF = SelectObject(dc, f);
         SetTextCharacterExtra(dc, text.size() >= 3 ? -1 : 0);
         memset(sbits, 0, (size_t)W * H * 4);
@@ -228,7 +249,8 @@ HICON RenderIcon(const std::wstring& text, int barPct, Rgb textColor, Rgb barCol
     return icon;
 }
 
-Rgb Foreground() { return g_lightTaskbar ? Rgb{ 0, 0, 0 } : Rgb{ 255, 255, 255 }; }
+Rgb Foreground() {COLORREF color=appearance::TaskbarColor(g_lightTaskbar,g_config.taskbarColor);return {GetRValue(color),GetGValue(color),GetBValue(color)};}
+std::wstring IconSignature(int shown,bool charging,bool dim){return std::to_wstring(shown)+(charging?L"c":L"")+(dim?L"d":L"")+(g_lightTaskbar?L"l":L"k")+L":"+std::to_wstring(g_config.taskbarColor);}
 
 HICON IconFor(int pct, bool charging, bool dim) {
     Rgb fg = Foreground();
@@ -237,6 +259,7 @@ HICON IconFor(int pct, bool charging, bool dim) {
             : pct <= 30       ? Rgb{ 255, 150, 0 }
                               : Rgb{ 30, 190, 90 };
     Rgb text = (!charging && pct >= 0 && pct <= LOW_BATTERY) ? Rgb{ 240, 50, 60 } : fg;
+    if(g_config.taskbarColor!=CLR_INVALID){text=fg;bar=fg;}
     std::wstring t = pct < 0 ? L"?" : std::to_wstring(pct);
     return RenderIcon(t, pct, text, bar, dim);
 }
@@ -250,14 +273,14 @@ void CopyTip(wchar_t* dst, size_t cap, const std::wstring& s) {
 
 std::wstring StatusText(const TrayEntry& e) {
     const auto& s = e.st;
-    if (!s.connected) return L"off / not connected";
+    if (!s.connected) return i18n::T(L"off / not connected");
     std::wstring t;
-    if (!s.levelText.empty()) t = s.levelText;
+    if (!s.levelText.empty()) t = i18n::T(s.levelText);
     else if (s.percent >= 0) t = std::to_wstring(s.percent) + L"%";
-    else if (e.lastPct >= 0) t = std::to_wstring(e.lastPct) + L"% (last known)";
-    else t = L"unknown";
-    if (s.charging) t += L", charging";
-    if (s.asleep) t += L", asleep";
+    else if (e.lastPct >= 0) t = std::to_wstring(e.lastPct) + i18n::T(L"% (last known)");
+    else t = i18n::T(L"unknown");
+    if (s.charging) t += i18n::T(L", charging");
+    if (s.asleep) t += i18n::T(L", asleep");
     return t;
 }
 
@@ -295,11 +318,11 @@ void UpdatePlaceholder() {
         if (g_placeholder) { TrayDelete(PLACEHOLDER_ID); g_placeholder = false; }
         return;
     }
-    bool any = false;
+    bool any = g_environmentAdded[0]||g_environmentAdded[1]||g_dateAdded;
     for (auto& [k, e] : g_entries) any |= e.added;
     if (!any && !g_placeholder) {
         if (!g_placeholderIcon) g_placeholderIcon = RenderIcon(L"-", -1, Foreground(), Foreground(), true);
-        TrayCall(NIM_ADD, PLACEHOLDER_ID, g_placeholderIcon, L"Wireless Battery\nNo devices with battery info found");
+        TrayCall(NIM_ADD, PLACEHOLDER_ID, g_placeholderIcon, L"Wedgu\n"+i18n::T(L"No devices with battery info found"));
         g_placeholder = true;
     } else if (any && g_placeholder) {
         TrayDelete(PLACEHOLDER_ID);
@@ -309,14 +332,14 @@ void UpdatePlaceholder() {
 
 void ApplyEntry(TrayEntry& e) {
     const auto& s = e.st;
-    bool visible = s.connected && !g_useWidget && !IsHidden(s.key);
+    bool visible = g_config.showBattery && s.connected && !g_useWidget && !IsHidden(s.key);
     if (!visible) {
         if (e.added) { TrayDelete(e.uid); e.added = false; }
         return;
     }
     int shown = s.percent >= 0 ? s.percent : e.lastPct;
     bool dim = s.asleep || shown < 0;
-    std::wstring sig = std::to_wstring(shown) + (s.charging ? L"c" : L"") + (dim ? L"d" : L"") + (g_lightTaskbar ? L"l" : L"k");
+    std::wstring sig = IconSignature(shown,s.charging,dim);
     if (sig != e.iconSig || !e.icon) {
         if (e.icon) DestroyIcon(e.icon);
         e.icon = IconFor(shown, s.charging, dim);
@@ -325,12 +348,12 @@ void ApplyEntry(TrayEntry& e) {
     std::wstring tip = s.name + L"\n" + StatusText(e);
 
     const wchar_t* infoTitle = nullptr;
-    std::wstring info;
+    std::wstring info,lowTitle;
     if (s.charging || shown > LOW_BATTERY + 10) e.lowWarned = false;
     if (!s.charging && s.percent >= 0 && s.percent <= LOW_BATTERY && !e.lowWarned) {
         e.lowWarned = true;
-        infoTitle = L"Low battery";
-        info = s.name + L" is at " + std::to_wstring(s.percent) + L"%";
+        lowTitle=i18n::T(L"Low battery");infoTitle = lowTitle.c_str();
+        info = s.name + L": " + std::to_wstring(s.percent) + L"%";
     }
     TrayCall(e.added ? NIM_MODIFY : NIM_ADD, e.uid, e.icon, tip, infoTitle, info);
     e.added = true;
@@ -346,11 +369,16 @@ int KindOrder(DeviceKind k) {  // headset first, then mouse, ... (matches the le
     }
 }
 
+void UpdateDateTray(){
+ if(g_useWidget||!g_config.showDate){if(g_dateAdded)TrayDelete(4);g_dateAdded=false;return;}
+ if(g_dateIcon)DestroyIcon(g_dateIcon);
+ SYSTEMTIME now;GetLocalTime(&now);g_dateIcon=RenderIcon(std::to_wstring(now.wDay),-1,Foreground(),Foreground(),false);TrayCall(g_dateAdded?NIM_MODIFY:NIM_ADD,4,g_dateIcon,appdate::Format(now));g_dateAdded=true;
+}
 void UpdateWidget() {
-    if (!g_useWidget) return;
+    const auto today=appdate::Current();
     std::vector<const TrayEntry*> list;
     for (auto& [k, e] : g_entries)
-        if (e.st.connected && !IsHidden(k)) list.push_back(&e);
+        if (g_config.showBattery && e.st.connected && !IsHidden(k)) list.push_back(&e);
     std::sort(list.begin(), list.end(), [](const TrayEntry* a, const TrayEntry* b) {
         int ka = KindOrder(a->st.kind), kb = KindOrder(b->st.kind);
         return ka != kb ? ka < kb : a->st.name < b->st.name;
@@ -361,7 +389,7 @@ void UpdateWidget() {
         WidgetItem it;
         it.kind = e->st.kind;
         it.percent = e->st.percent >= 0 ? e->st.percent : e->lastPct;
-        it.text = e->st.levelText;
+        it.text = i18n::T(e->st.levelText);
         it.charging = e->st.charging;
         it.dim = e->st.asleep || (it.percent < 0 && it.text.empty());
         it.low = !it.charging && it.percent >= 0 && it.percent <= LOW_BATTERY;
@@ -370,9 +398,20 @@ void UpdateWidget() {
         if (!tip.empty()) tip += L"\n";
         tip += e->st.name + L": " + StatusText(*e);
     }
-    if (tip.empty()) tip = L"Wireless Battery: no devices with battery info found";
-    widget::SetItems(items, tip);
+    if (tip.empty()) tip = L"Wedgu: "+i18n::T(L"No devices with battery info found");
+    for(int index=0;index<2;++index){bool enabled=index==0?g_config.showWeather:(g_config.showAir&&!g_config.iqairKey.empty());const auto&r=index==0?g_environment.weather:g_environment.air;
+        if(!enabled)continue;
+        WidgetItem item;item.type=index==0?WidgetType::Weather:WidgetType::Air;item.condition=r.icon;item.text=r.valid?std::to_wstring(r.value)+(index==0?L"°C":L""):L"—";item.dim=!r.valid||r.stale;items.push_back(item);tip+=L"\n"+i18n::Detail(r.detail)+(r.observed.empty()?L"":L"\n"+r.observed)+(r.stale?i18n::T(L" · сохранённое значение"):L"");
+    }
+    if(g_config.showDate){WidgetItem date;date.type=WidgetType::Date;date.text=today;items.push_back(date);tip+=L"\n"+date.text;}
+    g_lastDate=today;UpdateDateTray();
+    g_displayItems=items;
+    if(g_useWidget)widget::SetItems(items, tip);
+    settingsui::Update(items,ProviderStatus());
+    lockscreen::Update(g_config,items);
 }
+
+void UpdateEnvironmentTray(){for(int i=0;i<2;++i){bool visible=!g_useWidget&&(i==0?g_config.showWeather:(g_config.showAir&&!g_config.iqairKey.empty()));UINT uid=2+i;if(!visible){if(g_environmentAdded[i])TrayDelete(uid);g_environmentAdded[i]=false;continue;}const auto&r=i==0?g_environment.weather:g_environment.air;if(g_environmentIcons[i])DestroyIcon(g_environmentIcons[i]);g_environmentIcons[i]=RenderIcon(r.valid?std::to_wstring(r.value)+(i==0?L"°":L""):L"?",-1,Foreground(),Foreground(),!r.valid||r.stale);TrayCall(g_environmentAdded[i]?NIM_MODIFY:NIM_ADD,uid,g_environmentIcons[i],i18n::Detail(r.detail)+L"\n"+(r.valid?std::to_wstring(r.value)+(i==0?L"°C":L" US AQI"):i18n::T(L"Нет данных"))+L"\n"+r.observed);g_environmentAdded[i]=true;}}
 
 void OnResults(std::vector<DeviceStatus>& results) {
     std::map<std::wstring, bool> seen;
@@ -418,6 +457,7 @@ void Reconcile() {
     bool changed = alive != g_useWidget;
     g_useWidget = alive;
     if (changed) {
+        UpdateEnvironmentTray();
         for (auto& [k, e] : g_entries) ApplyEntry(e);
         UpdatePlaceholder();
         UpdateWidget();
@@ -434,11 +474,13 @@ void SetMode(bool useWidget) {
 
 void ReAddAll() {
     g_placeholder = false;
+    g_environmentAdded[0]=g_environmentAdded[1]=false;g_dateAdded=false;UpdateEnvironmentTray();UpdateDateTray();
     for (auto& [k, e] : g_entries) { e.added = false; ApplyEntry(e); }
     UpdatePlaceholder();
 }
 
 void RedrawAll() {
+    UpdateEnvironmentTray();UpdateDateTray();
     if (g_placeholderIcon) {
         DestroyIcon(g_placeholderIcon);
         g_placeholderIcon = nullptr;
@@ -448,49 +490,36 @@ void RedrawAll() {
     UpdatePlaceholder();
 }
 
-void ShowMenu() {
-    HMENU m = CreatePopupMenu();
-    std::vector<std::wstring> keys;  // menu id ID_DEVICE_FIRST + i -> device key
-    if (g_entries.empty()) AppendMenuW(m, MF_STRING | MF_GRAYED, 0, L"No devices with battery info found");
-    else AppendMenuW(m, MF_STRING | MF_GRAYED, 0, L"Click a device to show or hide it");
-    for (auto& [k, e] : g_entries) {
-        std::wstring line = e.st.name + L":  " + StatusText(e) + L"   [" + e.st.via + L"]";
-        AppendMenuW(m, MF_STRING | (IsHidden(k) ? 0 : MF_CHECKED), ID_DEVICE_FIRST + (UINT)keys.size(), line.c_str());
-        keys.push_back(k);
-    }
-    AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
-    AppendMenuW(m, MF_STRING | (g_wantWidget ? MF_CHECKED : 0), ID_MODE_WIDGET, L"Show on the taskbar (icon + percentage)");
-    AppendMenuW(m, MF_STRING | (!g_wantWidget ? MF_CHECKED : 0), ID_MODE_TRAY, L"Show as tray icons");
-    CheckMenuRadioItem(m, ID_MODE_WIDGET, ID_MODE_TRAY, g_wantWidget ? ID_MODE_WIDGET : ID_MODE_TRAY, MF_BYCOMMAND);
-    AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
-    AppendMenuW(m, MF_STRING, ID_REFRESH, L"Refresh now");
-    AppendMenuW(m, MF_STRING | (AutostartEnabled() ? MF_CHECKED : 0), ID_AUTOSTART, L"Start with Windows");
-    AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
-    AppendMenuW(m, MF_STRING, ID_EXIT, L"Exit");
-    POINT pt;
-    GetCursorPos(&pt);
-    SetForegroundWindow(g_hwnd);
-    UINT cmd = TrackPopupMenu(m, TPM_RETURNCMD | TPM_NONOTIFY | TPM_RIGHTBUTTON, pt.x, pt.y, 0, g_hwnd, nullptr);
-    PostMessageW(g_hwnd, WM_NULL, 0, 0);
-    DestroyMenu(m);
-    switch (cmd) {
-        case ID_REFRESH: SetEvent(g_refreshEvt); break;
-        case ID_AUTOSTART: SetAutostart(!AutostartEnabled()); break;
-        case ID_MODE_WIDGET: SetMode(true); break;
-        case ID_MODE_TRAY: SetMode(false); break;
-        case ID_EXIT: DestroyWindow(g_hwnd); break;
-        default:
-            if (cmd >= ID_DEVICE_FIRST && cmd < ID_DEVICE_FIRST + keys.size()) {
-                const std::wstring& key = keys[cmd - ID_DEVICE_FIRST];
-                if (!g_hidden.erase(key)) g_hidden.insert(key);
-                SaveHidden();
-                auto it = g_entries.find(key);
-                if (it != g_entries.end()) ApplyEntry(it->second);
-                UpdatePlaceholder();
-                UpdateWidget();
-            }
-    }
+void ApplyColors(COLORREF color){g_config.taskbarColor=color;g_config.lockscreenColor=color;widget::SetColor(color);RedrawAll();UpdateWidget();}
+
+void ShowDeviceMenu(){
+ std::vector<popup::Row> rows{{ID_BACK,L"‹  Назад",L"",true}};g_menuDeviceKeys.clear();
+ for(const auto&[key,entry]:g_entries){rows.push_back({ID_DEVICE_FIRST+(UINT)g_menuDeviceKeys.size(),entry.st.name+L" · "+StatusText(entry),entry.st.via,true,!IsHidden(key)});g_menuDeviceKeys.push_back(key);}
+ if(g_menuDeviceKeys.empty())rows.push_back({0,L"Устройства пока не обнаружены"});
+ rows.push_back({ID_MODE_WIDGET,L"На панели задач",L"Иконки и значения в одной строке",true,g_wantWidget});
+ rows.push_back({ID_MODE_TRAY,L"Отдельные значки в трее",L"",true,!g_wantWidget});
+ rows.push_back({ID_AUTOSTART,L"Запускать с Windows",L"",true,AutostartEnabled()});
+ popup::Show(g_inst,g_hwnd,L"Устройства и отображение",rows);
 }
+void ShowMenu(){popup::Show(g_inst,g_hwnd,L"Wedgu · "+g_config.city,{{ID_REFRESH,L"Обновить данные"},{ID_DEVICES,L"Устройства и отображение  ›",L"",true},{ID_SETTINGS,L"Настройки"},{ID_EXIT,L"Выйти"}});}
+void MenuCommand(UINT id){
+ switch(id){
+ case ID_REFRESH:SetEvent(g_refreshEvt);SetEvent(g_environmentEvt);return;
+ case ID_DEVICES:ShowDeviceMenu();return;case ID_BACK:ShowMenu();return;
+ case ID_MODE_WIDGET:SetMode(true);ShowDeviceMenu();return;
+ case ID_MODE_TRAY:SetMode(false);ShowDeviceMenu();return;
+ case ID_AUTOSTART:SetAutostart(!AutostartEnabled());ShowDeviceMenu();return;
+ case ID_SETTINGS:settingsui::Show(g_inst,g_hwnd,WM_SETTINGS,g_displayItems,ProviderStatus());return;
+ case ID_EXIT:DestroyWindow(g_hwnd);return;
+ }
+ if(id>=ID_DEVICE_FIRST&&id<ID_DEVICE_FIRST+g_menuDeviceKeys.size()){
+  auto key=g_menuDeviceKeys[id-ID_DEVICE_FIRST];if(!g_hidden.erase(key))g_hidden.insert(key);SaveHidden();
+  auto entry=g_entries.find(key);if(entry!=g_entries.end())ApplyEntry(entry->second);
+  UpdatePlaceholder();UpdateWidget();ShowDeviceMenu();
+ }
+}
+
+DWORD WINAPI EnvironmentWorker(LPVOID){environment::Client client;for(;;){auto* result=new environment::Snapshot(client.Poll(settings::Load()));if(!PostMessageW(g_hwnd,WM_ENV,0,(LPARAM)result))delete result;HANDLE events[]={g_stopEvt,g_environmentEvt};if(WaitForMultipleObjects(2,events,FALSE,30000)==WAIT_OBJECT_0)return 0;}}
 
 // ---- worker thread ----------------------------------------------------------------------------
 
@@ -499,7 +528,7 @@ DWORD WINAPI Worker(LPVOID) {
         auto* v = new std::vector<DeviceStatus>(PollAllDevices());
         if (!PostMessageW(g_hwnd, WM_RESULTS, 0, (LPARAM)v)) delete v;
         HANDLE hs[2] = { g_stopEvt, g_refreshEvt };
-        if (WaitForMultipleObjects(2, hs, FALSE, POLL_INTERVAL_MS) == WAIT_OBJECT_0) return 0;
+        if (WaitForMultipleObjects(2, hs, FALSE, g_pollInterval.load()) == WAIT_OBJECT_0) return 0;
     }
 }
 
@@ -514,6 +543,14 @@ LRESULT CALLBACK WndProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
         return 0;
     }
     switch (msg) {
+        case WM_OPEN_SETTINGS:settingsui::Show(g_inst,g_hwnd,WM_SETTINGS,g_displayItems,ProviderStatus());return 0;
+        case WM_COMMAND:MenuCommand(LOWORD(wp));return 0;
+        case settingsui::LanguageChanged:g_config.language=settings::Load().language;RedrawAll();UpdateWidget();UpdateEnvironmentTray();UpdatePlaceholder();SetEvent(g_environmentEvt);return 0;
+        case settingsui::DateChanged:g_config.showDate=wp!=0;UpdateWidget();UpdatePlaceholder();return 0;
+        case settingsui::ColorsChanged:ApplyColors((COLORREF)wp);return 0;
+        case WM_SETTINGS:g_config=settings::Load();i18n::Configure(g_config.language);g_pollInterval=g_config.batteryMinutes*60000u;ApplyColors(g_config.taskbarColor);SetEvent(g_refreshEvt);SetEvent(g_environmentEvt);return 0;
+        case WM_ENV:{auto* result=(environment::Snapshot*)lp;g_environment=*result;delete result;UpdateEnvironmentTray();UpdateWidget();UpdatePlaceholder();return 0;}
+        case WM_LOCK:{auto* result=(std::wstring*)lp;g_lockStatus=*result;delete result;settingsui::Update(g_displayItems,ProviderStatus());return 0;}
         case WM_RESULTS: {
             auto* v = reinterpret_cast<std::vector<DeviceStatus>*>(lp);
             OnResults(*v);
@@ -541,8 +578,9 @@ LRESULT CALLBACK WndProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
             return TRUE;
         case WM_TIMER:
             if (wp == TIMER_DEBOUNCE) { KillTimer(h, TIMER_DEBOUNCE); SetEvent(g_refreshEvt); }
-            if (wp == TIMER_WIDGET) Reconcile();
+            if (wp == TIMER_WIDGET){Reconcile();if(g_config.showDate&&g_lastDate!=appdate::Current())UpdateWidget();}
             return 0;
+        case WM_TIMECHANGE:if(g_config.showDate)UpdateWidget();return 0;
         case WM_SETTINGCHANGE:
             if (lp && !lstrcmpW((LPCWSTR)lp, L"ImmersiveColorSet")) {
                 bool light = ReadLightTaskbar();
@@ -550,14 +588,20 @@ LRESULT CALLBACK WndProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
             }
             return 0;
         case WM_DESTROY:
+            settingsui::Close();
             KillTimer(h, TIMER_WIDGET);
             widget::Destroy();
             SetEvent(g_stopEvt);
-            if (g_worker) WaitForSingleObject(g_worker, 5000);
+            if (g_worker) WaitForSingleObject(g_worker, INFINITE);
+            if(g_environmentWorker)WaitForSingleObject(g_environmentWorker,INFINITE);
+            lockscreen::Stop();
+            for(int i=0;i<2;++i){if(g_environmentAdded[i])TrayDelete(2+i);if(g_environmentIcons[i])DestroyIcon(g_environmentIcons[i]);}
             for (auto& [k, e] : g_entries) {
                 if (e.added) TrayDelete(e.uid);
                 if (e.icon) DestroyIcon(e.icon);
             }
+            if(g_dateAdded)TrayDelete(4);
+            if(g_dateIcon)DestroyIcon(g_dateIcon);
             if (g_placeholder) TrayDelete(PLACEHOLDER_ID);
             PostQuitMessage(0);
             return 0;
@@ -613,7 +657,9 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdLine, int) {
     g_inst = inst;
 
     HANDLE mutex = CreateMutexW(nullptr, TRUE, L"Local\\WirelessBatteryTray");
-    if (GetLastError() == ERROR_ALREADY_EXISTS) return 0;
+    if (GetLastError() == ERROR_ALREADY_EXISTS){if(cmdLine&&wcsstr(cmdLine,L"--settings"))PostMessageW(FindWindowW(L"WirelessBatteryWnd",nullptr),WM_OPEN_SETTINGS,0,0);CloseHandle(mutex);return 0;}
+    Gdiplus::GdiplusStartupInput graphicsInput;ULONG_PTR graphicsToken=0;Gdiplus::GdiplusStartup(&graphicsToken,&graphicsInput,nullptr);
+    g_config=settings::Load();g_pollInterval=g_config.batteryMinutes*60000u;
 
     g_lightTaskbar = ReadLightTaskbar();
     g_taskbarCreatedMsg = RegisterWindowMessageW(L"TaskbarCreated");
@@ -621,6 +667,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdLine, int) {
     WNDCLASSEXW wc{ sizeof(wc) };
     wc.lpfnWndProc = WndProc;
     wc.hInstance = inst;
+    wc.hIcon=LoadIconW(inst,MAKEINTRESOURCEW(1));wc.hIconSm=wc.hIcon;
     wc.lpszClassName = L"WirelessBatteryWnd";
     RegisterClassExW(&wc);
     // A hidden top-level window (not message-only) so it receives the TaskbarCreated broadcast.
@@ -634,6 +681,9 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdLine, int) {
 
     g_refreshEvt = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     g_stopEvt = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+    g_environmentEvt=CreateEventW(nullptr,FALSE,FALSE,nullptr);
+    lockscreen::Start(g_hwnd,WM_LOCK);
+    widget::SetColor(g_config.taskbarColor);
     g_wantWidget = LoadWidgetMode();
     LoadHidden();
     Reconcile();
@@ -641,15 +691,23 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdLine, int) {
     SetTimer(g_hwnd, TIMER_WIDGET, 1000, nullptr);
     g_worker = CreateThread(nullptr, 0, Worker, nullptr, 0, nullptr);
 
+    g_environmentWorker=CreateThread(nullptr,0,EnvironmentWorker,nullptr,0,nullptr);
+    if(cmdLine&&wcsstr(cmdLine,L"--settings"))PostMessageW(g_hwnd,WM_OPEN_SETTINGS,0,0);
     MSG m;
     while (GetMessageW(&m, nullptr, 0, 0) > 0) {
+        if(settingsui::Translate(&m))continue;
         TranslateMessage(&m);
         DispatchMessageW(&m);
     }
     // drain results posted after shutdown started
     while (PeekMessageW(&m, nullptr, WM_RESULTS, WM_RESULTS, PM_REMOVE)) delete reinterpret_cast<std::vector<DeviceStatus>*>(m.lParam);
+    while(PeekMessageW(&m,nullptr,WM_ENV,WM_ENV,PM_REMOVE))delete (environment::Snapshot*)m.lParam;
+    while(PeekMessageW(&m,nullptr,WM_LOCK,WM_LOCK,PM_REMOVE))delete (std::wstring*)m.lParam;
     if (notify) UnregisterDeviceNotification(notify);
     if (g_worker) CloseHandle(g_worker);
-    ReleaseMutex(mutex);
+    if(g_environmentWorker)CloseHandle(g_environmentWorker);
+    CloseHandle(g_stopEvt);CloseHandle(g_refreshEvt);CloseHandle(g_environmentEvt);
+    Gdiplus::GdiplusShutdown(graphicsToken);
+    ReleaseMutex(mutex);CloseHandle(mutex);
     return 0;
 }

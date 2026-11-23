@@ -2,7 +2,7 @@ name: Build and test
 
 on:
   push:
-    branches: [windows-style]
+    branches: [windows-style, feature/weather-air-lockscreen]
   pull_request:
   workflow_dispatch:
 
@@ -21,11 +21,15 @@ jobs:
           msystem: MINGW64
           install: mingw-w64-x86_64-gcc make
 
+      - name: Validate all 13 translation catalogs
+        shell: pwsh
+        run: node scripts/check-locales.js
+
       - name: Build application
         shell: msys2 {0}
         run: make
 
-      - name: Test display state, keyboard drivers and Rapoo
+      - name: Test locales, settings, rendering and device drivers
         shell: msys2 {0}
         run: make test
 
@@ -39,22 +43,8 @@ jobs:
           $version = (Get-Content VERSION -Raw).Trim()
           ./installer/build-installer.ps1 -Version $version
 
-      - name: Include HeadsetControl corresponding source
-        shell: pwsh
-        run: |
-          Invoke-WebRequest https://github.com/Sapd/HeadsetControl/releases/download/4.3.0/headsetcontrol-4.3.0.tar.gz -OutFile dist/headsetcontrol-4.3.0.tar.gz
-          if ((Get-FileHash dist/headsetcontrol-4.3.0.tar.gz -Algorithm SHA256).Hash -ne '918dcacf8aef347744b36b2d259d76880fa64b3869f0f8ef26b6576b873d28a7') { throw 'Source checksum mismatch' }
-
-      - name: Generate release checksums
-        shell: pwsh
-        run: |
-          $lines = Get-ChildItem dist -File | Sort-Object Name | ForEach-Object {
-            '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name
-          }
-          $lines | Set-Content dist/SHA256SUMS.txt -Encoding ascii
-
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: WirelessBattery-WindowsStyle
-          path: dist/*
+          name: Wedgu-windows-x64
+          path: dist/Wedgu-*/*
           if-no-files-found: error

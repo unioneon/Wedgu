@@ -1,99 +1,142 @@
 <div align="center">
 
-# Wireless Battery · Windows Style
+<img src="docs/social-preview.png" alt="Wedgu — batteries, weather and air quality beside your Windows clock" width="100%">
 
-**Заряд беспроводных устройств — прямо на панели задач Windows.**
+[![Windows 10/11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)](https://github.com/unioneon/Wedgu/releases/tag/v1.1.0)
+![13 languages](https://img.shields.io/badge/languages-13-64748B)
+![Native C++](https://img.shields.io/badge/native-C%2B%2B17%20%2F%20Win32-334155)
+[![GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-2D8C5A)](LICENSE)
 
-![Windows 10 / 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)
-![C++17 / Win32](https://img.shields.io/badge/C%2B%2B17-Win32-555555)
-[![GPL v3+](https://img.shields.io/badge/License-GPL--3.0--or--later-2D8C5A)](LICENSE)
-
-[**Скачать последнюю версию**](https://github.com/unioneon/WirelessBattery-Windows-Style/releases/latest) · [English](docs/README.en.md) · [История изменений](CHANGELOG.md)
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/taskbar-dark.png">
-  <img alt="Предпросмотр панели: наушники, мышь, две клавиатуры и геймпад" src="docs/taskbar-light.png">
-</picture>
-
-*Предпросмотр оформления. Проценты на изображении — пример, а не текущие показания ваших устройств.*
+[**Download installer**](https://github.com/unioneon/Wedgu/releases/download/v1.1.0/Wedgu-Setup-1.1.0.exe) · [**Portable ZIP**](https://github.com/unioneon/Wedgu/releases/download/v1.1.0/Wedgu-1.1.0-windows-x64-portable.zip) · [Release notes](https://github.com/unioneon/Wedgu/releases/tag/v1.1.0) · [Русский](docs/README.ru.md)
 
 </div>
 
-## Об этом форке
+**Wedgu puts wireless device batteries, weather, air quality and the date in a compact row beside your Windows clock.** Choose the taskbar or individual tray icons, then bring the same information to your lock-screen wallpaper.
 
-Это независимый **форк [Wireless Device Battery Monitor](https://github.com/krisgfx9/Wireless-Device-Battery-Monitor)** автора **[krisgfx9](https://github.com/krisgfx9)**, основанный на **[v1.0.4](https://github.com/krisgfx9/Wireless-Device-Battery-Monitor/releases/tag/v1.0.4)**.
+Built as a small native Windows application, with outline icons, a live appearance preview and settings in 13 languages.
 
-Основное приложение, архитектура Win32 и большая часть драйверов принадлежат оригинальному проекту. Здесь доработаны внешний вид панели, отображение сохранённого заряда и поддержка конкретных клавиатур. Это отдельная сборка, не официальный релиз оригинала. Лицензия **GPL-3.0-or-later** сохранена.
+## At a glance
 
-## Что изменено относительно оригинальной v1.0.4
-
-| Область | Изменения в Windows Style |
+| Feature | What you get |
 |---|---|
-| **Иконки и текст** | Мягкие оттенки для светлой и тёмной темы; отрисовка шрифтов в четырёхкратном размере с усреднением покрытия для сглаживания. |
-| **Геймпад** | Собственная векторная иконка: округлый корпус, четыре штриха крестовины и одно крупное кольцо. Геометрия заново отрисовывается под DPI экрана. |
-| **Статус мыши** | Пропуск ответа о батарее больше не объявляет работающую мышь спящей. Последнее значение сохраняется с пометкой `last known`; достоверно сообщённый драйвером сон по-прежнему учитывается. |
-| **Lofree Flow Lite84** | Добавлен протокол приёмника 2,4 ГГц: идентификация, проверка связи, процент, зарядка и напряжение; ответы проверяются по команде и контрольной сумме. |
-| **AJAZZ AK820 Pro** | Добавлены запросы к приёмнику и USB-интерфейсу, правильное имя и значок по Bluetooth, единая запись при разных способах подключения. Пустой ответ не превращается в выдуманный процент. |
-| **Проверки** | Регрессионные тесты состояния панели и драйверов клавиатур, диагностические утилиты и рендер предпросмотра. Тесты Rapoo из оригинала сохранены. |
+| **Device batteries** | Mouse, keyboard, headset and controller readings, with battery polling adjustable from **1 to 60 minutes**. |
+| **Weather** | **Open-Meteo without an API key**, refreshed hourly. Optional AccuWeather support with your own key and eligible plan. |
+| **Air quality** | **IQAir US AQI** with custom outline status icons, refreshed every 15 minutes. Hidden entirely when no key is configured. |
+| **Lock screen** | Optional wallpaper widgets, **50–200% size control**, live preview and restoration of the original background when disabled. |
+| **Appearance** | One shared color for taskbar, tray and lock screen. Six presets, custom HEX colors and a screen eyedropper. |
+| **Location & date** | Search for a city or detect your location through Windows. Optional system date in **DD.MM.YYYY** format, off by default. |
+| **Languages** | **13 languages**, automatic system-language selection and instant switching. Arabic includes right-to-left layout. |
 
-Поддержка мышей, наушников и контроллеров из оригинальной версии сохранена. Полный исходный список устройств: [README оригинала v1.0.4](UPSTREAM-README.md).
+## A closer look
 
-## Проверено на устройствах
+<table>
+<tr><td width="50%"><strong>Your widgets, your colors</strong></td><td width="50%"><strong>A live lock-screen preview</strong></td></tr>
+<tr><td><img src="docs/screenshots/widgets.png" alt="Wedgu widget settings, polling interval and color presets"></td><td><img src="docs/screenshots/lockscreen.png" alt="Lock-screen widget preview and size slider"></td></tr>
+<tr><td>Choose what appears and how often batteries update.</td><td>Adjust the size before applying it to your wallpaper.</td></tr>
+</table>
 
-| Устройство | Подключение | Результат |
+<details>
+<summary><strong>Custom colors, languages and the unified menu</strong></summary>
+
+<table>
+<tr><td width="50%"><strong>Make it yours</strong></td><td width="50%"><strong>Switch languages instantly</strong></td></tr>
+<tr><td><img src="docs/screenshots/colors.png" alt="Custom widget color in the lock-screen preview"></td><td><img src="docs/screenshots/about.png" alt="Language selection, author and upstream attribution"></td></tr>
+</table>
+
+<img src="docs/screenshots/menu.png" alt="Wedgu unified context menu" width="360">
+
+</details>
+
+<p align="center"><img src="docs/screenshots/taskbar.png" alt="Real taskbar widgets showing mouse and keyboard batteries, weather, AQI and date" width="600"></p>
+
+*Actual application screenshots. Battery levels, weather, AQI and date reflect the time of capture.*
+
+## On your lock screen
+
+![Wedgu widgets on the Windows lock screen](docs/screenshots/lockscreen-live.png)
+
+**Your essentials, before you unlock.** Device battery levels, weather, air quality and the system date sit in a clean, compact row on your lock-screen wallpaper. Adjust the widget size and color in Settings, preview the result, or switch lock-screen display off entirely. Disabling it restores the original background.
+
+*Real Windows lock-screen screenshot. Readings reflect the time of capture; the clock and date at the top are Windows system elements.*
+
+## Get started
+
+1. Download the [installer](https://github.com/unioneon/Wedgu/releases/download/v1.1.0/Wedgu-Setup-1.1.0.exe), or extract the complete [portable ZIP](https://github.com/unioneon/Wedgu/releases/download/v1.1.0/Wedgu-1.1.0-windows-x64-portable.zip) and run `Wedgu.exe`.
+2. Right-click a widget or tray icon and open **Settings**. In **City & services**, search for your city or choose Windows location.
+3. Open-Meteo weather works without a key. For air quality, add your own [IQAir API key](https://dashboard.iqair.com/personal/api-keys).
+4. Choose the widgets, color and battery interval you want. Enable lock-screen display if desired, then click **Apply**.
+
+**Auto color:** system foreground on the taskbar/tray, white on the lock screen. A custom color applies to all three. Date and color changes take effect immediately; other settings use Apply.
+
+**Change language:** **Settings → About → App language**. The default follows the system UI language, falling back to English when unsupported. Choose English, Russian, Spanish, Simplified Chinese, French, German, Arabic, Portuguese, Japanese, Korean, Italian, Turkish or Hindi.
+
+## Downloads and privacy
+
+| File | Purpose |
+|---|---|
+| `Wedgu-Setup-1.1.0.exe` | Windows x64 installer, Start menu shortcut and uninstaller. Per-user installation is supported. |
+| `Wedgu-1.1.0-windows-x64-portable.zip` | Run without installation; extract the entire archive. |
+| `Wedgu-1.1.0-source.zip` | Matching application source, resources and build instructions. |
+| `headsetcontrol-4.3.0.tar.gz` | Corresponding source for the bundled headset helper. |
+| `SHA256SUMS.txt` | SHA-256 checksums for the release assets. |
+
+Keep `headsetcontrol.exe` beside `Wedgu.exe` for supported USB headsets. Portable stores preferences in the Windows user profile and shares them with an installed copy. API keys are protected with **Windows DPAPI**; personal keys and settings are not included in distributions. The legacy `WirelessBattery` registry/data directory names are retained for migration.
+
+Weather and air-quality providers receive the selected location when fetching data. Windows location detection is on demand and requires permission; it does not continuously track your location. Wallpaper backup and generated lock-screen images remain local in `%LOCALAPPDATA%\WirelessBattery`.
+
+SF Pro Display is used when already installed. **No Apple font is redistributed.** Windows fonts provide fallback and additional script coverage.
+
+## What changed from the original?
+
+Wedgu is an independent fork of **[Wireless Device Battery Monitor](https://github.com/krisgfx9/Wireless-Device-Battery-Monitor)** by **[krisgfx9](https://github.com/krisgfx9)**, based on **[v1.0.4](https://github.com/krisgfx9/Wireless-Device-Battery-Monitor/releases/tag/v1.0.4)**. Its native Win32 architecture, original device support and much of the driver code come from upstream. This is a separate project release.
+
+| Area | Changes in this fork |
+|---|---|
+| **Widgets & services** | Open-Meteo weather, optional IQAir/AccuWeather, system date and lock-screen wallpaper widgets. |
+| **Settings** | Redesigned UI, adjustable polling and lock-screen size, shared color picker, city search, Windows location, 13 languages and About page. |
+| **Visuals** | Wedgu branding, smooth outline device/weather/AQI icons, DPI-aware rendering and a custom gamepad icon. |
+| **Mouse status** | A missed battery response no longer falsely marks an active mouse asleep. Cached readings are explicitly labeled. |
+| **Keyboards** | Lofree Flow Lite84 receiver protocol support; AJAZZ AK820 Pro identification, USB marker handling, Bluetooth normalization and cross-transport deduplication. |
+| **Quality & packaging** | Tests for translations, settings, rendering, provider responses and device protocols; installer, portable, matching sources and checksums. |
+
+See the [changelog](CHANGELOG.md), [technical notes](LOCAL-CHANGES.md) and [archived upstream README](UPSTREAM-README.md).
+
+## Hardware verification
+
+| Device | Connection | Verified behavior |
 |---|---|---|
-| **Lofree Flow Lite84** | Приёмник 2,4 ГГц | Подтверждено чтение реального заряда; во время проверки 95–100%, также читались флаг зарядки и напряжение. |
-| **AJAZZ AK820 Pro** | Bluetooth | Подтверждено чтение из Windows; во время проверки 61–62%. Правильное имя, значок клавиатуры и отсутствие дублей. |
-| **Logitech MX Master 3S** | Logitech receiver | Чтение заряда; исправлено ложное `asleep` после пропущенного опроса. |
-| **Sony WH-1000XM4** | Bluetooth | Подтверждено чтение заряда. |
-| **Xbox Wireless Controller** | Bluetooth | Подтверждено отображение заряда и новой иконки. |
+| **Lofree Flow Lite84** | 2.4 GHz receiver | Battery percentage, charging flag and voltage; response and checksum validation. |
+| **AJAZZ AK820 Pro** | Bluetooth | Windows battery reading, correct keyboard identity and duplicate suppression. |
+| **Logitech MX Master 3S** | Logitech receiver | Battery reading; missed polls do not invent sleep. |
+| **Sony WH-1000XM4** | Bluetooth | Battery reading. |
+| **Xbox Wireless Controller** | Bluetooth | Battery display and the custom controller icon. |
 
-**AJAZZ через 2,4 ГГц — важное ограничение:** проверенный приёмник `0C45:FDFD` отвечает на запросы, но возвращает пустое значение батареи. Числовой процент по этому каналу на данной ревизии получить не удалось. По кабелю проверенный экземпляр возвращает специальный маркер `FF`; приложение показывает `USB`, а не подставляет 100%. Для процента на этой клавиатуре используйте **Bluetooth**. Поведение других ревизий не подтверждено.
+**AJAZZ limitation:** the tested `0C45:FDFD` receiver does not supply a usable numeric percentage. The tested USB unit returns an `FF` marker, displayed as `USB`, not an invented 100%. Use Bluetooth for a percentage on that unit; other firmware revisions are unverified. Sleeping Lofree devices may need a keypress and refresh.
 
-Если Lofree спит, нажмите на ней несколько клавиш и выберите **Refresh now**. После успешного чтения последнее значение сохраняется до 30 минут при пропусках ответов.
+Windows policies may restrict location access and lock-screen wallpaper changes. The custom AQI icons change at **0–50 / 51–70 / 71+**; these are visual cues, not official IQAir health categories.
 
-## Установка
+Open-Meteo's free public endpoint is intended for non-commercial use. Commercial deployments must follow the provider's current terms and use a suitable plan. IQAir and optional AccuWeather access depend on the user's credentials, plan and provider limits. Weather attribution: **Open-Meteo, CC BY 4.0**. City search: **GeoNames / Open-Meteo**.
 
-Откройте [Releases](https://github.com/unioneon/WirelessBattery-Windows-Style/releases/latest):
+## Build and test
 
-- **Setup.exe** — установка и удаление обычным способом, ярлык в меню «Пуск».
-- **portable.zip** — распакуйте архив целиком и запустите `WirelessBattery.exe`.
-
-Перед сменой сборки закройте работающую программу через **Exit**. Для строки с иконками и процентами выберите **Show on the taskbar (icon + percentage)**. Через меню также доступны **Refresh now**, скрытие отдельных устройств и **Start with Windows**.
-
-HeadsetControl 4.3.0 входит в выпуск для дополнительной поддержки гарнитур. Его исходники и уведомление о лицензии предоставляются вместе с релизом.
-
-## Сборка и тесты
-
-Нужны Windows и MinGW-w64: `g++`, `windres`, а для `make` — GNU Make.
+Use MinGW-w64 with C++17 support (`g++`, `windres`, `make`):
 
 ```sh
-make
+make -j4
 make test
+node scripts/check-locales.js
 ```
 
-Для обычного Windows-терминала: `build.bat`. Для установщика дополнительно нужен Inno Setup:
+`build.bat` is also available with MinGW on PATH. Packaging requires Inno Setup 6/7:
 
 ```powershell
-powershell -File installer/build-installer.ps1 -Version 1.0.4.4
+./installer/build-installer.ps1
 ```
 
-Команды диагностики:
+The packaging script produces local files, verifies the pinned HeadsetControl hashes and never uploads a release. See [CONTRIBUTING.md](CONTRIBUTING.md) for device and translation changes.
 
-```text
-WirelessBattery.exe --list
-WirelessBattery.exe --dump
-WirelessBattery.exe --quit
-```
+## Credits and license
 
-В репозитории есть [проверки драйверов](tests), [рендер панели](tests/widget_preview.cpp) и [технические примечания](LOCAL-CHANGES.md). GitHub Actions собирает приложение, запускает тесты и создаёт установщик и переносной архив.
+**[GPL-3.0-or-later](LICENSE).** Original application: krisgfx9 and the Wireless Device Battery Monitor contributors. Wedgu development and branding: [unioneon](https://github.com/unioneon/).
 
-## Авторство и лицензия
-
-- **Оригинальное приложение:** [krisgfx9/Wireless-Device-Battery-Monitor](https://github.com/krisgfx9/Wireless-Device-Battery-Monitor), база этого форка — тег `v1.0.4`.
-- **Этот форк:** [unioneon/WirelessBattery-Windows-Style](https://github.com/unioneon/WirelessBattery-Windows-Style).
-- **Протокол Lofree:** [официальный Control HUB](https://lofree.tech/home/).
-- **Исследования AJAZZ:** [ak820-mac](https://github.com/gha-projects/ak820-mac) и [ak820-center](https://github.com/Twyx22/ak820-center).
-- **Дополнительные гарнитуры:** [HeadsetControl](https://github.com/Sapd/HeadsetControl).
-
-**GNU GPL v3 или более поздняя версия.** При распространении изменённых сборок необходимо сохранять лицензию и предоставлять соответствующие исходники. См. [LICENSE](LICENSE), [уведомления о стороннем ПО](installer/THIRD_PARTY_NOTICES.txt) и [благодарности оригинального проекта](UPSTREAM-README.md#credits).
+HeadsetControl: Sapd and contributors, GPL-3.0. JSON for Modern C++: Niels Lohmann and contributors, MIT. Complete notices and data attribution are in [THIRD_PARTY_NOTICES.txt](installer/THIRD_PARTY_NOTICES.txt).

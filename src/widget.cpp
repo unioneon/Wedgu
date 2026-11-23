@@ -3,12 +3,19 @@
 #include <commctrl.h>
 #include <algorithm>
 #include <cmath>
+#include <gdiplus.h>
+#include <cstdlib>
+#include "air_paths.h"
+#include "weather_icons.h"
+#include "typography.h"
+#include "appearance.h"
 
 namespace {
 
 HWND g_wnd, g_taskbar, g_tip, g_notify, g_rebar;
 UINT g_clickMsg;
 bool g_light, g_hover;
+COLORREF g_color=CLR_INVALID;
 std::vector<WidgetItem> g_items;
 std::wstring g_tipText;
 RECT g_lastTray{}, g_lastBar{};
@@ -172,6 +179,29 @@ Mask RenderMask(const std::wstring& s, HFONT font) {
     return m;
 }
 
+// Rasterize the supplied 24x24 SVGs at 4x for smooth edges.
+Mask RenderSvg(const char* svg,int width) {
+    using namespace Gdiplus;
+    Mask m;m.w=m.h=width;m.a.resize((size_t)width*width);
+    Bitmap bmp(width*4,width*4,PixelFormat32bppARGB);Graphics g(&bmp);
+    g.Clear(Color(0,0,0,0));g.SetSmoothingMode(SmoothingModeAntiAlias);g.ScaleTransform(width/6.f,width/6.f);
+    GraphicsPath path;const char* p=svg;char cmd=0;float x=0,y=0,sx=0,sy=0;
+    auto number=[&](){while(*p==' '||*p==',')++p;char* end=nullptr;float v=strtof(p,&end);p=end;return v;};
+    while(*p){while(*p==' '||*p==',')++p;if(!*p)break;if((*p>='A'&&*p<='Z'))cmd=*p++;
+        if(cmd=='M'){x=number();y=number();sx=x;sy=y;path.StartFigure();cmd='L';}
+        else if(cmd=='L'){float nx=number(),ny=number();path.AddLine(x,y,nx,ny);x=nx;y=ny;}
+        else if(cmd=='H'){float nx=number();path.AddLine(x,y,nx,y);x=nx;}
+        else if(cmd=='V'){float ny=number();path.AddLine(x,y,x,ny);y=ny;}
+        else if(cmd=='C'){float a=number(),b=number(),c=number(),d=number(),nx=number(),ny=number();path.AddBezier(x,y,a,b,c,d,nx,ny);x=nx;y=ny;}
+        else if(cmd=='Z'){path.CloseFigure();x=sx;y=sy;cmd=0;}else break;
+    }
+    Pen pen(Color(255,255,255,255),1.5f);pen.SetStartCap(LineCapRound);pen.SetEndCap(LineCapRound);pen.SetLineJoin(LineJoinRound);g.DrawPath(&pen,&path);g.Flush();
+    for(int y0=0;y0<width;++y0)for(int x0=0;x0<width;++x0){unsigned a=0;for(int yy=0;yy<4;++yy)for(int xx=0;xx<4;++xx){Color c;bmp.GetPixel(x0*4+xx,y0*4+yy,&c);a+=c.GetA();}m.a[y0*width+x0]=(BYTE)(a/16);}
+    return m;
+}
+Mask RenderAir(int index,int width){return RenderSvg(AirPaths[std::max(0,std::min(2,index))],width);}
+Mask RenderWeather(int code,int width){auto path=weathericons::Paths(code);return RenderSvg(path.c_str(),width);}
+
 struct Rgb { int r, g, b; };
 
 struct Canvas {
@@ -197,33 +227,39 @@ struct Canvas {
 
 struct Piece { Mask m; Rgb color; int alpha; int gapAfter; };
 
-std::vector<Piece> Layout(int& width) {
-    Rgb fg = g_light ? Rgb{ 60, 60, 60 } : Rgb{ 220, 220, 220 };
-    Rgb red = g_light ? Rgb{ 180, 45, 50 } : Rgb{ 220, 110, 110 };
-    Rgb charge = g_light ? Rgb{ 45, 105, 155 } : Rgb{ 125, 175, 210 };
-    HFONT icons = MakeFont(Px(16), FW_NORMAL, L"Segoe Fluent Icons", L"Segoe MDL2 Assets");
-    HFONT bolt = MakeFont(Px(11), FW_NORMAL, L"Segoe Fluent Icons", L"Segoe MDL2 Assets");
-    HFONT text = MakeFont(Px(13), FW_NORMAL, L"Segoe UI Variable Text", L"Segoe UI");
+std::vector<Piece> Layout(int& width,const std::vector<WidgetItem>& items,int dpi,bool light,COLORREF color) {
+    auto px=[&](int n){return std::max(1,MulDiv(n,dpi,96));};
+    COLORREF foreground=appearance::TaskbarColor(light,color);
+    Rgb fg{GetRValue(foreground),GetGValue(foreground),GetBValue(foreground)};
+    Rgb red = light ? Rgb{ 180, 45, 50 } : Rgb{ 220, 110, 110 };
+    Rgb charge = light ? Rgb{ 45, 105, 155 } : Rgb{ 125, 175, 210 };
+    if(color!=CLR_INVALID){red=fg;charge=fg;}
+    HFONT icons = MakeFont(px(16), FW_NORMAL, L"Segoe Fluent Icons", L"Segoe MDL2 Assets");
+    HFONT bolt = MakeFont(px(11), FW_NORMAL, L"Segoe Fluent Icons", L"Segoe MDL2 Assets");
+    HFONT text = typography::Font(px(13));
 
     std::vector<Piece> out;
-    if (g_items.empty()) out.push_back({ RenderMask(std::wstring(1, kBatteryUnknown), icons), fg, 110, 0 });
-    for (size_t i = 0; i < g_items.size(); i++) {
-        const auto& it = g_items[i];
+    if (items.empty()) out.push_back({ RenderMask(std::wstring(1, kBatteryUnknown), icons), fg, 110, 0 });
+    for (size_t i = 0; i < items.size(); i++) {
+        const auto& it = items[i];
         int a = it.dim ? 120 : 255;
         Rgb tc = it.low ? red : fg;
-        Mask icon = it.kind == DeviceKind::Gamepad ? RenderGamepad(Px(20)) :
+        if(it.type==WidgetType::Date){out.push_back({RenderMask(it.text,text),fg,a,i+1<items.size()?px(14):0});continue;}
+        Mask icon = it.type==WidgetType::Air ? RenderAir(it.condition,px(18)) :
+                    it.type==WidgetType::Weather ? RenderWeather(it.condition,px(20)) :
+                    it.kind == DeviceKind::Gamepad ? RenderGamepad(px(20)) :
                     RenderMask(std::wstring(1, Glyph(it.kind, it.bluetooth)), icons);
-        out.push_back({ std::move(icon), fg, a, Px(5) });
+        out.push_back({ std::move(icon), fg, a, px(5) });
         std::wstring t = !it.text.empty() ? it.text : it.percent >= 0 ? std::to_wstring(it.percent) + L"%" : L"?";
-        out.push_back({ RenderMask(t, text), tc, a, it.charging ? Px(2) : 0 });
+        out.push_back({ RenderMask(t, text), tc, a, it.charging ? px(2) : 0 });
         if (it.charging) out.push_back({ RenderMask(std::wstring(1, kBolt), bolt), charge, a, 0 });
-        out.back().gapAfter = i + 1 < g_items.size() ? Px(14) : 0;
+        out.back().gapAfter = i + 1 < items.size() ? px(14) : 0;
     }
     DeleteObject(icons);
     DeleteObject(bolt);
     DeleteObject(text);
 
-    width = Px(8) * 2;
+    width = px(8) * 2;
     for (auto& p : out) width += p.m.w + p.gapAfter;
     return out;
 }
@@ -234,7 +270,7 @@ void Paint() {
     GetClientRect(g_taskbar, &bar);
     int H = bar.bottom - bar.top;
     int W = 0;
-    auto pieces = Layout(W);
+    auto pieces = Layout(W,g_items,Dpi(),g_light,g_color);
     if (W <= 0 || H <= 0) return;
     Canvas cv(W, H);
 
@@ -308,6 +344,12 @@ LRESULT CALLBACK WidgetProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
 }  // namespace
 
 namespace widget {
+void SetColor(COLORREF c){g_color=c;Paint();}
+PixelImage RenderStrip(const std::vector<WidgetItem>& items,int dpi,bool light,COLORREF color){
+    int w=0;auto pieces=Layout(w,items,dpi,light,color);int h=MulDiv(32,dpi,96);for(const auto&p:pieces)h=std::max(h,p.m.h+4);
+    Canvas cv(w,h);int x=MulDiv(8,dpi,96);for(const auto&p:pieces){cv.Draw(p.m,x,(h-p.m.h)/2,p.color,p.alpha);x+=p.m.w+p.gapAfter;}
+    return {w,h,std::move(cv.px)};
+}
 
 bool Create(HINSTANCE inst, HWND notifyWnd, UINT clickMsg, bool lightTheme) {
     Destroy();

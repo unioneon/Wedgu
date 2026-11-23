@@ -4,8 +4,8 @@
 1 24 "app.manifest"
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1,0,4,4
-PRODUCTVERSION 1,0,4,4
+FILEVERSION 1,1,0,0
+PRODUCTVERSION 1,1,0,0
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -13,11 +13,11 @@ BEGIN
   BEGIN
     BLOCK "040904B0"
     BEGIN
-      VALUE "FileDescription", "Wireless Battery - Windows Style"
-      VALUE "ProductName", "Wireless Battery - Windows Style"
-      VALUE "FileVersion", "1.0.4.4"
-      VALUE "ProductVersion", "1.0.4.4"
-      VALUE "OriginalFilename", "WirelessBattery.exe"
+      VALUE "FileDescription", "Wedgu"
+      VALUE "ProductName", "Wedgu"
+      VALUE "FileVersion", "1.1.0"
+      VALUE "ProductVersion", "1.1.0"
+      VALUE "OriginalFilename", "Wedgu.exe"
     END
   END
   BLOCK "VarFileInfo"
@@ -25,3 +25,17 @@ BEGIN
     VALUE "Translation", 0x409, 1200
   END
 END
+
+1001 RCDATA "locales/en.json"
+1002 RCDATA "locales/ru.json"
+1003 RCDATA "locales/es.json"
+1004 RCDATA "locales/zh-CN.json"
+1005 RCDATA "locales/fr.json"
+1006 RCDATA "locales/de.json"
+1007 RCDATA "locales/ar.json"
+1008 RCDATA "locales/pt.json"
+1009 RCDATA "locales/ja.json"
+1010 RCDATA "locales/ko.json"
+1011 RCDATA "locales/it.json"
+1012 RCDATA "locales/tr.json"
+1013 RCDATA "locales/hi.json"

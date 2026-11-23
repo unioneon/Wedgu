@@ -6,7 +6,10 @@
 #include <vector>
 #include "devices.h"
 
+enum class WidgetType { Battery, Weather, Air, Date };
 struct WidgetItem {
+    WidgetType type=WidgetType::Battery;
+    int condition=0;
     DeviceKind kind = DeviceKind::Other;
     int  percent  = -1;     // -1 = unknown
     std::wstring text;      // shown instead of the percentage when set (coarse levels like "Low")
@@ -16,7 +19,10 @@ struct WidgetItem {
     bool bluetooth = false;  // picks the Bluetooth icon when the device type is unknown
 };
 
+struct PixelImage { int width=0,height=0; std::vector<DWORD> pixels; };
 namespace widget {
+PixelImage RenderStrip(const std::vector<WidgetItem>& items,int dpi,bool light,COLORREF color=CLR_INVALID);
+void SetColor(COLORREF color);
 // Creates the widget on the primary taskbar. Clicks are reported by posting `clickMsg` to `notifyWnd`.
 bool Create(HINSTANCE inst, HWND notifyWnd, UINT clickMsg, bool lightTheme);
 void Destroy();

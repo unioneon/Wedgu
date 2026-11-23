@@ -1,13 +1,38 @@
-Wireless Battery bundles the following third-party software.
+Wedgu includes software and data from the following projects.
 
-HeadsetControl 4.3.0 (headsetcontrol.exe)
-  Copyright (C) the HeadsetControl contributors
-  https://github.com/Sapd/HeadsetControl
-  License: GNU General Public License v3.0 (same text as LICENSE.txt)
-  Corresponding source code:
-    https://github.com/Sapd/HeadsetControl/releases/tag/4.3.0
-    (headsetcontrol-4.3.0.tar.gz is also attached to every Wireless Battery release)
+Wireless Device Battery Monitor, by krisgfx9 and contributors
+https://github.com/krisgfx9/Wireless-Device-Battery-Monitor
+Wedgu is an independent fork based on upstream v1.0.4.
+License: GPL-3.0-or-later. Full license in LICENSE.txt.
 
-  The binary is the unmodified official release asset
-  headsetcontrol-windows-x86_64.exe,
-  SHA-256 e371da043710ddb8fc70af77f2ccad1cd03f8c6f49ba423e08764ad7a94a3c40.
+HeadsetControl 4.3.0 (headsetcontrol.exe), by Sapd and contributors
+https://github.com/Sapd/HeadsetControl
+License: GPL-3.0. Corresponding source accompanies the release:
+headsetcontrol-4.3.0.tar.gz (official unmodified source archive).
+Official binary SHA-256:
+e371da043710ddb8fc70af77f2ccad1cd03f8c6f49ba423e08764ad7a94a3c40
+Source archive SHA-256:
+918dcacf8aef347744b36b2d259d76880fa64b3869f0f8ef26b6576b873d28a7
+
+JSON for Modern C++ 3.12.0, by Niels Lohmann and contributors
+https://github.com/nlohmann/json
+License: MIT. Full text in json-LICENSE.txt (vendor/json-LICENSE.txt in source).
+
+Open-Meteo weather data: https://open-meteo.com/
+Weather data attribution: Open-Meteo, CC BY 4.0.
+https://creativecommons.org/licenses/by/4.0/
+City search: Open-Meteo geocoding API, based on GeoNames data (CC BY 4.0).
+https://www.geonames.org/
+The public endpoint is intended for non-commercial use; commercial deployments
+must comply with Open-Meteo's current service terms and use the appropriate plan.
+
+IQAir data (optional, user-supplied API key): https://www.iqair.com/
+US AQI values are supplied by IQAir; custom display icons are visual cues,
+not official IQAir health categories. Data access is subject to provider terms.
+
+AccuWeather data (optional, user-supplied API key): https://www.accuweather.com/
+Data access is subject to the user's provider plan and terms.
+
+SF Pro Display is NOT redistributed. The application uses it only when already
+installed locally. Windows fonts provide fallback and additional script coverage.
+Wedgu branding and the custom AQI artwork were supplied by the project owner.
