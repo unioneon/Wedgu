@@ -16,7 +16,7 @@ void RoundedCorners(Bitmap& bitmap,float radius){ int w=bitmap.GetWidth(),h=bitm
  bitmap.UnlockBits(&data);}
 int main(int argc,char**argv){bool en=argc>1&&std::string(argv[1])=="--english";GdiplusStartupInput input;ULONG_PTR token;GdiplusStartup(&token,&input,nullptr);{
  Bitmap b(2560,1280,PixelFormat32bppRGB);Graphics g(&b);g.ScaleTransform(2,2);g.SetSmoothingMode(SmoothingModeAntiAlias);g.SetInterpolationMode(InterpolationModeHighQualityBicubic);g.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
- LinearGradientBrush bg(Point(0,0),Point(1280,640),Color(255,249,251,255),Color(255,226,240,252));g.FillRectangle(&bg,0,0,1280,640);
+ LinearGradientBrush bg(Point(0,0),Point(1280,640),Color(255,249,251,255),Color(255,226,240,252));g.Clear(Color(255,249,251,255));g.FillRectangle(&bg,-2,-2,1284,644);
  SolidBrush haze(Color(35,105,187,255));g.FillEllipse(&haze,870,-210,630,630);
  branding::DrawMark(g,RectF(54,43,68,47));Text(g,L"Wedgu",RectF(138,38,300,65),45,Color(255,27,34,47),FontStyleBold);
  Box(g,RectF(360,53,72,30),Color(255,232,239,249),15);Text(g,L"1.1.0",RectF(374,57,60,24),17,Color(255,40,101,159));
