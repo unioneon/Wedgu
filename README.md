@@ -121,6 +121,12 @@ Windows policies may restrict location access and lock-screen wallpaper changes.
 
 Open-Meteo's free public endpoint is intended for non-commercial use. Commercial deployments must follow the provider's current terms and use a suitable plan. IQAir and optional AccuWeather access depend on the user's credentials, plan and provider limits. Weather attribution: **Open-Meteo, CC BY 4.0**. City search: **GeoNames / Open-Meteo**.
 
+## Need support for your device?
+
+**Custom device support — $5 per device.** If your mouse, keyboard, headset or controller is missing, I can add support for it. Message [@mansdesigner on Telegram](https://t.me/mansdesigner) with the exact model and connection type to discuss the integration.
+
+The resulting device support will be included in the **public, open-source version of Wedgu**, so everyone with the same device can benefit from it.
+
 ## Build and test
 
 Use MinGW-w64 with C++17 support (`g++`, `windres`, `make`):
