@@ -67,3 +67,22 @@ on MinGW, so no toolchain-header edits are needed. The application uses integer 
 references; controller polling behavior is unchanged. Public package version: 1.0.4.4.
 
 The application and modifications remain GPL-3.0-or-later; see LICENSE.
+
+## WLMouse support
+
+- Ported the GPL-3.0-or-later WLMouse driver from upstream snapshot
+  `notjiccu/wireless-device-battery-monitor@79705baa15412ad1f96bd7c9d3798b5d981c0d2a`.
+- Added the contributor-enumerated Beast X 1K receiver `36A7:A882`, interface 2,
+  usage `FFFF:0000`, 65-byte feature reports. Status query `02 02 00 83`
+  returned a real battery percentage of 93, not charging.
+- The driver validates command, status and percentage, retries echoed requests,
+  preserves explicit sleep and gives receivers a 30-minute last-known grace period.
+- Cable `A884` also claims the alternative 1K receiver `A882`. All Beast X
+  transports (`A882` / `A883` / `A884`) share key `wlmouse:A882` and name
+  `WLMouse Beast X`, so the UI updates the existing cached entry when charging
+  instead of retaining a second, stale receiver entry. Driver and display tests
+  cover receiver -> cable -> receiver transitions.
+- Both build paths include the driver. `make test` includes a mocked-transport
+  driver test; `tests/wlmouse_status.cpp` is the hardware diagnostic.
+- Other models in the inherited table are not locally hardware-tested.
+  Original Beast X 4K (`A887` / `A888`) uses a different protocol.

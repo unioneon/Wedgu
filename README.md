@@ -110,6 +110,7 @@ AK980 support includes the known 33-byte SONiX receiver protocol and a separate 
 | **AJAZZ AK980 V2** | 2.4 GHz receiver | Battery reading confirmed by a user on the test build. |
 | **Lofree Flow Lite84** | 2.4 GHz receiver | Battery percentage, charging flag and voltage; response and checksum validation. |
 | **AJAZZ AK820 Pro** | Bluetooth | Windows battery reading, correct keyboard identity and duplicate suppression. |
+| **WLMouse Beast X** | 1K receiver `36A7:A882` | Battery reading reported working by the contributor; receiver/cable identity and charging are covered by automated tests. |
 | **Logitech MX Master 3S** | Logitech receiver | Battery reading; missed polls do not invent sleep. |
 | **Sony WH-1000XM4** | Bluetooth | Battery reading. |
 | **Xbox Wireless Controller** | Bluetooth | Battery display and the custom controller icon. |
@@ -141,5 +142,7 @@ The packaging script produces local files, verifies the pinned HeadsetControl ha
 ## Credits and license
 
 **[GPL-3.0-or-later](LICENSE).** Original application: krisgfx9 and the Wireless Device Battery Monitor contributors. Wedgu development and branding: [unioneon](https://github.com/unioneon/).
+
+WLMouse integration: [arsants](https://github.com/arsants), ported from [the upstream driver snapshot](https://github.com/notjiccu/wireless-device-battery-monitor/blob/79705baa15412ad1f96bd7c9d3798b5d981c0d2a/src/drivers/wlmouse.cpp). Original Beast X 4K (`A887` / `A888`) uses a different protocol and is not supported by this driver. Other listed WLMouse variants have not been verified on hardware here.
 
 HeadsetControl: Sapd and contributors, GPL-3.0. JSON for Modern C++: Niels Lohmann and contributors, MIT. Complete notices and data attribution are in [THIRD_PARTY_NOTICES.txt](installer/THIRD_PARTY_NOTICES.txt).

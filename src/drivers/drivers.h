@@ -47,6 +47,7 @@ void PollGlorious(PollContext& ctx);  // also Hitscan
 void PollAula(PollContext& ctx);      // AULA F75 / F87 Pro / F99 wireless keyboards (before Kysona, same vendor id)
 void PollAtkSerial(PollContext& ctx); // ATK N9 Pro headset (virtual COM port)
 void PollKeychron(PollContext& ctx);  // Keychron mice
+void PollWlmouse(PollContext& ctx);   // WLMouse Beast X family / Sword X, including 1K receiver A882
 void PollLamzu(PollContext& ctx);     // LAMZU mice on vendor ids 373E / 37B0
 void PollRongyuan(PollContext& ctx);  // Rongyuan receivers (Attack Shark, Ajazz keyboards, ...)
 void PollSonyInzone(PollContext& ctx);  // Sony INZONE H9 II / H5

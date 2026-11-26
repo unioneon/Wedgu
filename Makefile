@@ -43,4 +43,7 @@ test: build/app_res.o
 	$(CXX) $(CXXFLAGS) tests/rapoo_driver_test.cpp src/drivers/rapoo.cpp src/i18n.cpp build/app_res.o -o build/rapoo_driver_test.exe
 	./build/rapoo_driver_test.exe
 
+	$(CXX) $(CXXFLAGS) tests/wlmouse_driver_test.cpp src/drivers/wlmouse.cpp -o build/wlmouse_driver_test.exe
+	./build/wlmouse_driver_test.exe
+
 .PHONY: clean test

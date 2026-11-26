@@ -77,6 +77,7 @@ Portable запускается без установки, но настройк
 | AJAZZ AK980 V2 | Приёмник 2,4 ГГц | Пользователь подтвердил чтение заряда в тестовой сборке. |
 | Lofree Flow Lite84 | Приёмник 2,4 ГГц | Чтение процента, флага зарядки и напряжения; проверка ответов и контрольной суммы. |
 | AJAZZ AK820 Pro | Bluetooth | Чтение процента через Windows, правильное имя и устранение дублей разных подключений. |
+| WLMouse Beast X | Приёмник 1K `36A7:A882` | Чтение заряда подтверждено автором PR; переключение приёмник/кабель без дублей и зарядка покрыты автоматическими тестами. |
 | Logitech MX Master 3S | Logitech receiver | Чтение заряда; пропуск опроса не объявляет мышь спящей. |
 | Sony WH-1000XM4 | Bluetooth | Чтение заряда. |
 | Xbox Wireless Controller | Bluetooth | Отображение заряда и новой векторной иконки. |
@@ -103,3 +104,5 @@ make test
 ## Лицензии и благодарности
 
 [GPL-3.0-or-later](../LICENSE). Оригинальный проект: krisgfx9 и участники Wireless Device Battery Monitor. Развитие форка и бренд Wedgu: [unioneon](https://github.com/unioneon/). HeadsetControl — Sapd и участники, GPL-3.0. JSON for Modern C++ — Niels Lohmann и участники, MIT. Полные сведения — [THIRD_PARTY_NOTICES.txt](../installer/THIRD_PARTY_NOTICES.txt).
+
+Драйвер WLMouse добавлен [arsants](https://github.com/arsants) на основе GPL-драйвера оригинального проекта. Старый Beast X 4K (`A887` / `A888`) использует другой протокол и не поддерживается этим драйвером; остальные варианты WLMouse здесь на устройствах не проверялись.

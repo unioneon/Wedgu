@@ -69,5 +69,22 @@ int main() {
     g_config.taskbarColor=blue;HICON icon=IconFor(50,false,false);ICONINFO iconInfo{};assert(GetIconInfo(icon,&iconInfo));BITMAP bitmap{};GetObjectW(iconInfo.hbmColor,sizeof(bitmap),&bitmap);std::vector<DWORD> pixels((size_t)bitmap.bmWidth*bitmap.bmHeight);BITMAPINFO info{};info.bmiHeader={sizeof(BITMAPINFOHEADER),bitmap.bmWidth,-bitmap.bmHeight,1,32,BI_RGB};HDC dc=CreateCompatibleDC(nullptr);assert(GetDIBits(dc,iconInfo.hbmColor,0,bitmap.bmHeight,pixels.data(),&info,DIB_RGB_COLORS));int opaque=0;for(DWORD pixel:pixels)if((pixel>>24)>=250){assert(((pixel>>16)&255)==GetRValue(blue)&&((pixel>>8)&255)==GetGValue(blue)&&(pixel&255)==GetBValue(blue));++opaque;}assert(opaque>0);DeleteDC(dc);DeleteObject(iconInfo.hbmMask);DeleteObject(iconInfo.hbmColor);DestroyIcon(icon);
     assert(!AppSettings{}.showDate);SYSTEMTIME fixed{};fixed.wDay=3;fixed.wMonth=2;fixed.wYear=2027;assert(appdate::Format(fixed)==L"03.02.2027");fixed.wDay=29;fixed.wMonth=2;fixed.wYear=2028;assert(appdate::Format(fixed)==L"29.02.2028");
     WndProc(nullptr,settingsui::DateChanged,TRUE,0);assert(g_config.showDate);assert(rendered.back().type==WidgetType::Date&&rendered.back().text==appdate::Current());g_lastDate=L"old-date";WndProc(nullptr,WM_TIMECHANGE,0,0);assert(g_lastDate==appdate::Current());WndProc(nullptr,settingsui::DateChanged,FALSE,0);assert(!g_config.showDate&&rendered.back().type!=WidgetType::Date);WndProc(nullptr,settingsui::DateChanged,TRUE,0);assert(rendered.back().type==WidgetType::Date);WndProc(nullptr,settingsui::DateChanged,FALSE,0);assert(rendered.back().type!=WidgetType::Date);
+    // A single WLMouse identity updates in place on receiver -> cable -> receiver.
+    g_entries.clear();
+    mouse = {};
+    mouse.key = L"wlmouse:A882"; mouse.name = L"WLMouse Beast X";
+    mouse.kind = DeviceKind::Mouse; mouse.percent = 93; mouse.graceSec = 1800;
+    mouse.via = L"2.4 GHz receiver"; results = {mouse}; OnResults(results);
+    const auto receiverUid = g_entries.at(mouse.key).uid;
+    mouse.percent = 87; mouse.charging = true; mouse.via = L"USB cable";
+    results = {mouse}; OnResults(results);
+    assert(g_entries.size() == 1 && rendered.size() == 1 && rendered[0].percent == 87);
+    assert(g_entries.at(mouse.key).uid == receiverUid);
+    assert(StatusText(g_entries.at(mouse.key)) == L"87%, charging");
+    mouse.percent = 88; mouse.charging = false; mouse.via = L"2.4 GHz receiver";
+    results = {mouse}; OnResults(results);
+    assert(g_entries.size() == 1 && rendered.size() == 1 && rendered[0].percent == 88);
+    assert(g_entries.at(mouse.key).uid == receiverUid);
+    assert(StatusText(g_entries.at(mouse.key)) == L"88%");
     puts("Display state passed: cached level stays normal, explicit sleep dims, refresh recovers, expired entries disappear.");
 }
