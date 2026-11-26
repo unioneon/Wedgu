@@ -36,3 +36,8 @@ Data access is subject to the user's provider plan and terms.
 SF Pro Display is NOT redistributed. The application uses it only when already
 installed locally. Windows fonts provide fallback and additional script coverage.
 Wedgu branding and the custom AQI artwork were supplied by the project owner.
+
+WLMouse driver integration: arsants (https://github.com/arsants).
+Ported from notjiccu/wireless-device-battery-monitor snapshot
+79705baa15412ad1f96bd7c9d3798b5d981c0d2a, GPL-3.0-or-later.
+Protocol references and original authors are credited in src/drivers/wlmouse.cpp.

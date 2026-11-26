@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.2 — WLMouse Beast X · 2026-11-26
+
+- Integrated PR #1 by arsants: WLMouse feature-report battery queries, including the contributor-tested A882 1K receiver.
+- Keep one Beast X identity across A882/A883 receivers and A884 cable; update percentage and charging without stale duplicate entries.
+- Validate replies, retry echoed requests and preserve explicit sleep responses.
+- Resolve conflicts with current Wedgu while retaining AK980 V2 support, settings and all 13 languages.
+- Added driver and display regression tests. Native build, all nine test groups and locale validation pass. Hardware feedback is welcome; the original Beast X 4K protocol remains unsupported.
+
 ## 1.1.1 — AK980 support · 2026-11-26
 
 - Added AJAZZ AK980 V2 battery queries over the 2.4 GHz SONiX receiver; operation confirmed by a user on the test build.

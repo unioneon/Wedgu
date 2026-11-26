@@ -2,12 +2,12 @@
 
 <img src="docs/social-preview.png" alt="Wedgu — batteries, weather and air quality beside your Windows clock" width="100%">
 
-[![Windows 10/11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)](https://github.com/unioneon/Wedgu/releases/tag/v1.1.1)
+[![Windows 10/11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)](https://github.com/unioneon/Wedgu/releases/tag/v1.1.2)
 ![13 languages](https://img.shields.io/badge/languages-13-64748B)
 ![Native C++](https://img.shields.io/badge/native-C%2B%2B17%20%2F%20Win32-334155)
 [![GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-2D8C5A)](LICENSE)
 
-[**Download installer**](https://github.com/unioneon/Wedgu/releases/download/v1.1.1/Wedgu-Setup-1.1.1.exe) · [**Portable ZIP**](https://github.com/unioneon/Wedgu/releases/download/v1.1.1/Wedgu-1.1.1-windows-x64-portable.zip) · [Release notes](https://github.com/unioneon/Wedgu/releases/tag/v1.1.1) · [Русский](docs/README.ru.md)
+[**Download installer**](https://github.com/unioneon/Wedgu/releases/download/v1.1.2/Wedgu-Setup-1.1.2.exe) · [**Portable ZIP**](https://github.com/unioneon/Wedgu/releases/download/v1.1.2/Wedgu-1.1.2-windows-x64-portable.zip) · [Release notes](https://github.com/unioneon/Wedgu/releases/tag/v1.1.2) · [Русский](docs/README.ru.md)
 
 </div>
 
@@ -61,7 +61,7 @@ Built as a small native Windows application, with outline icons, a live appearan
 
 ## Get started
 
-1. Download the [installer](https://github.com/unioneon/Wedgu/releases/download/v1.1.1/Wedgu-Setup-1.1.1.exe), or extract the complete [portable ZIP](https://github.com/unioneon/Wedgu/releases/download/v1.1.1/Wedgu-1.1.1-windows-x64-portable.zip) and run `Wedgu.exe`.
+1. Download the [installer](https://github.com/unioneon/Wedgu/releases/download/v1.1.2/Wedgu-Setup-1.1.2.exe), or extract the complete [portable ZIP](https://github.com/unioneon/Wedgu/releases/download/v1.1.2/Wedgu-1.1.2-windows-x64-portable.zip) and run `Wedgu.exe`.
 2. Right-click a widget or tray icon and open **Settings**. In **City & services**, search for your city or choose Windows location.
 3. Open-Meteo weather works without a key. For air quality, add your own [IQAir API key](https://dashboard.iqair.com/personal/api-keys).
 4. Choose the widgets, color and battery interval you want. Enable lock-screen display if desired, then click **Apply**.
@@ -74,9 +74,9 @@ Built as a small native Windows application, with outline icons, a live appearan
 
 | File | Purpose |
 |---|---|
-| `Wedgu-Setup-1.1.1.exe` | Windows x64 installer, Start menu shortcut and uninstaller. Per-user installation is supported. |
-| `Wedgu-1.1.1-windows-x64-portable.zip` | Run without installation; extract the entire archive. |
-| `Wedgu-1.1.1-source.zip` | Matching application source, resources and build instructions. |
+| `Wedgu-Setup-1.1.2.exe` | Windows x64 installer, Start menu shortcut and uninstaller. Per-user installation is supported. |
+| `Wedgu-1.1.2-windows-x64-portable.zip` | Run without installation; extract the entire archive. |
+| `Wedgu-1.1.2-source.zip` | Matching application source, resources and build instructions. |
 | `headsetcontrol-4.3.0.tar.gz` | Corresponding source for the bundled headset helper. |
 | `SHA256SUMS.txt` | SHA-256 checksums for the release assets. |
 
