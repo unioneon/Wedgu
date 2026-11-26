@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.1 — AK980 support · 2026-11-26
+
+- Added AJAZZ AK980 V2 battery queries over the 2.4 GHz SONiX receiver; operation confirmed by a user on the test build.
+- Added a separate validated GET_DEVICE_INFO parser for newer 65-byte AK980 Pro revisions (experimental, fixture-tested).
+- Recognize AK980 Bluetooth devices as keyboards and merge transport duplicates when Windows supplies battery data.
+- Resolve shared USB product IDs using the product descriptor so AK980 is not labeled AK820. Older wired firmware is shown as USB without inventing a percentage.
+- Added regression coverage for invalid packets, model IDs, battery bounds, receiver interfaces and cross-transport duplicates.
+- Retained the corrected rounded artwork without dark canvas-edge lines.
+
 ## 1.1.0 — Wedgu · 2026-11-23
 
 Wireless device batteries, weather and air quality beside your Windows clock.

@@ -41,7 +41,7 @@ Compress-Archive -Path "$sourceStage\*" -DestinationPath "$out\Wedgu-$Version-so
 $hscSource="$out\headsetcontrol-4.3.0.tar.gz"
 if (-not (Test-Path -LiteralPath $hscSource)) {Invoke-WebRequest 'https://github.com/Sapd/HeadsetControl/releases/download/4.3.0/headsetcontrol-4.3.0.tar.gz' -OutFile $hscSource}
 if ((Get-FileHash -LiteralPath $hscSource -Algorithm SHA256).Hash.ToLowerInvariant() -ne '918dcacf8aef347744b36b2d259d76880fa64b3869f0f8ef26b6576b873d28a7') {throw 'HeadsetControl source checksum mismatch.'}
-Copy-Item -LiteralPath "$root\docs\RELEASE-1.1.0.md" -Destination "$out\RELEASE-NOTES.md"
+Copy-Item -LiteralPath "$root\docs\RELEASE-$Version.md" -Destination "$out\RELEASE-NOTES.md"
 $lines=Get-ChildItem -LiteralPath $out -File | Where-Object Name -ne 'SHA256SUMS.txt' | Sort-Object Name | ForEach-Object {'{0}  {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(),$_.Name}
 $lines | Set-Content -LiteralPath "$out\SHA256SUMS.txt" -Encoding ascii
 Write-Output "Release files prepared in $out (not published)."

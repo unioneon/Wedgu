@@ -186,6 +186,10 @@ void PollBluetooth(PollContext& ctx) {
             s.key = L"keyboard:0C45:FDFD";
             s.name = L"AJAZZ AK820 Pro";
             s.kind = DeviceKind::Keyboard;
+        } else if (lower.find(L"ak980") != std::wstring::npos) {
+            s.key = L"keyboard:0C45:FEFE";
+            s.name = L"AJAZZ AK980";
+            s.kind = DeviceKind::Keyboard;
         } else if (lower.rfind(L"flow lite84", 0) == 0 || lower.rfind(L"flow84-l", 0) == 0) {
             s.key = L"keyboard:05AC:024F";
             s.name = L"Lofree Flow Lite84";

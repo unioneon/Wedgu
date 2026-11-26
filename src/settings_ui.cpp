@@ -104,7 +104,7 @@ void CreateControls(){
  Label(L"Ключи зашифрованы Windows и остаются на этом компьютере.",216,552,582,2,true,38,false);
  Label(L"Язык программы",232,126,240,3);std::wstring languageName=L"Как в системе";for(const auto&lang:i18n::Languages())if(draft.language==lang.code)languageName=lang.name;Button(LANGUAGE,languageName.c_str(),488,122,286,3);
  Label(L"Язык меняется сразу, без перезапуска.",232,171,540,3,true,40);
- Label(L"Wedgu",232,258,360,3);Label((i18n::T(L"Версия")+L" 1.1.0").c_str(),232,294,540,3,true);
+ Label(L"Wedgu",232,258,360,3);Label((i18n::T(L"Версия")+L" 1.1.1").c_str(),232,294,540,3,true);
  Label(L"Автор и исходный код",232,346,540,3);Add(WC_LINK,L"<a>github.com/unioneon ↗</a>",WS_TABSTOP,GITHUB_LINK,232,382,540,28,3);
  Label(L"На основе Wireless Device Battery Monitor · GPL-3.0",232,458,540,3,true,38);auto upstream=L"<a>"+i18n::T(L"Оригинальный проект ↗")+L"</a>";Add(WC_LINK,upstream.c_str(),WS_TABSTOP,UPSTREAM_LINK,232,508,540,28,3);
  Button(CANCEL,L"Закрыть",582,620,98,-1);Button(SAVE,L"Применить",694,620,104,-1);Scale();Page(0);
@@ -117,7 +117,7 @@ void Paint(HWND h){PAINTSTRUCT ps;HDC dc=BeginPaint(h,&ps);RECT r;GetClientRect(
  if(page==1){Card(g,216,106,582,56);Card(g,216,368,582,224);}
  if(page==2){Card(g,216,106,582,100);Round(g,RectF((float)P(X(232,420)),(float)P(156),(float)P(420),(float)P(40)),(float)P(7),Color(255,245,245,248));Card(g,216,230,582,134);Card(g,216,380,582,134);Round(g,RectF((float)P(X(232,548)),(float)P(278),(float)P(548),(float)P(40)),(float)P(7),Color(255,245,245,248));if(draft.weatherSource==1)Round(g,RectF((float)P(X(232,548)),(float)P(428),(float)P(548),(float)P(40)),(float)P(7),Color(255,245,245,248));else{g.Flush();TextAt(mem,L"Без регистрации и ключа. Обновление раз в час.\nИсточник: Open-Meteo · CC BY 4.0",236,436,536,58,font,muted,DT_LEFT|DT_WORDBREAK);}}
  if(page==3){Card(g,216,106,582,112);Card(g,216,238,582,182);Card(g,216,440,582,112);}
- TextAt(mem,L"Wedgu 1.1.0",20,616,174,24,smallFont,muted);
+ TextAt(mem,L"Wedgu 1.1.1",20,616,174,24,smallFont,muted);
  std::wstring line=sampling?L"Пипетка: нажмите на цвет · Esc — отмена":currentStatus.empty()?L"Подключаем устройства…":currentStatus;if(page==3)line=L"GPL-3.0 · unioneon";if(page==2){auto start=line.find(L"Погода:");if(start!=std::wstring::npos)line=line.substr(start);}else if(page==1){auto start=line.find(L"Локскрин:");if(start!=std::wstring::npos)line=line.substr(start);}auto cut=line.find(L'\n');if(cut!=std::wstring::npos)line.resize(cut);TextAt(mem,line,216,616,350,34,smallFont,muted);
  BitBlt(dc,0,0,r.right,r.bottom,mem,0,0,SRCCOPY);SelectObject(mem,old);DeleteObject(bitmap);DeleteDC(mem);EndPaint(h,&ps);}
 void DrawButton(DRAWITEMSTRUCT*d){HDC dc=d->hDC;RECT r=d->rcItem;int id=d->CtlID;COLORREF base=(id>=NAV_GENERAL&&id<=NAV_ABOUT)?RGB(242,243,246):(id==CANCEL||id==SAVE)?panel:RGB(255,255,255);HBRUSH brush=CreateSolidBrush(base);FillRect(dc,&r,brush);DeleteObject(brush);Graphics g(dc);g.SetSmoothingMode(SmoothingModeAntiAlias);bool down=d->itemState&ODS_SELECTED;bool focus=d->itemState&ODS_FOCUS;auto rect=RectF((float)r.left,(float)r.top,(float)(r.right-r.left),(float)(r.bottom-r.top));

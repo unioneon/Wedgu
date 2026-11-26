@@ -1,4 +1,4 @@
-Wedgu 1.1.0 — Windows 10/11 x64
+Wedgu 1.1.1 — Windows 10/11 x64
 
 Run Wedgu.exe. Right-click a widget or the tray icon to open the menu.
 Open Settings > About to choose a language. System language is the default;
@@ -21,6 +21,11 @@ Windows user profile; portable and installed copies share these settings.
 Keep headsetcontrol.exe alongside Wedgu.exe for supported USB headsets.
 SF Pro Display is used if locally installed; the font is not bundled.
 Appropriate Windows fonts are used for Arabic, Chinese, Japanese, Korean and Hindi.
+
+AJAZZ AK980 V2 battery support over 2.4 GHz has been user-confirmed.
+Newer 65-byte vendor-protocol revisions are supported experimentally and
+covered by automated tests; no hardware confirmation is claimed for them.
+Bluetooth names are recognized as keyboards; Windows must supply the battery.
 
 Hardware limitations: the tested AJAZZ AK820 Pro reports a percentage over
 Bluetooth. Its tested 2.4 GHz receiver supplies no usable battery percentage;

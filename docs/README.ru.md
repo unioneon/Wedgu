@@ -2,11 +2,11 @@
 
 <img src="cover.ru.png" alt="Wedgu — батареи, погода и качество воздуха рядом с часами" width="100%">
 
-[![Windows 10/11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)](https://github.com/unioneon/Wedgu/releases/tag/v1.1.0)
+[![Windows 10/11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4)](https://github.com/unioneon/Wedgu/releases/tag/v1.1.1)
 ![13 языков](https://img.shields.io/badge/языки-13-64748B)
 [![GPL-3.0-or-later](https://img.shields.io/badge/лицензия-GPL--3.0--or--later-2D8C5A)](../LICENSE)
 
-[**Скачать установщик**](https://github.com/unioneon/Wedgu/releases/download/v1.1.0/Wedgu-Setup-1.1.0.exe) · [**Portable ZIP**](https://github.com/unioneon/Wedgu/releases/download/v1.1.0/Wedgu-1.1.0-windows-x64-portable.zip) · [English](../README.md) · [Что нового](../CHANGELOG.md)
+[**Скачать установщик**](https://github.com/unioneon/Wedgu/releases/download/v1.1.1/Wedgu-Setup-1.1.1.exe) · [**Portable ZIP**](https://github.com/unioneon/Wedgu/releases/download/v1.1.1/Wedgu-1.1.1-windows-x64-portable.zip) · [English](../README.md) · [Что нового](../CHANGELOG.md)
 
 </div>
 
@@ -59,9 +59,9 @@ Wedgu — независимый форк [Wireless Device Battery Monitor](http
 
 ## Установка
 
-- `Wedgu-Setup-1.1.0.exe`: установщик, ярлык в меню «Пуск», удаление через Windows. По умолчанию доступна установка для текущего пользователя.
-- `Wedgu-1.1.0-windows-x64-portable.zip`: распакуйте целиком и запустите `Wedgu.exe`. Оставьте `headsetcontrol.exe` рядом для поддерживаемых USB-наушников.
-- `Wedgu-1.1.0-source.zip`: соответствующие исходники приложения. Исходники HeadsetControl поставляются отдельным архивом.
+- `Wedgu-Setup-1.1.1.exe`: установщик, ярлык в меню «Пуск», удаление через Windows. По умолчанию доступна установка для текущего пользователя.
+- `Wedgu-1.1.1-windows-x64-portable.zip`: распакуйте целиком и запустите `Wedgu.exe`. Оставьте `headsetcontrol.exe` рядом для поддерживаемых USB-наушников.
+- `Wedgu-1.1.1-source.zip`: соответствующие исходники приложения. Исходники HeadsetControl поставляются отдельным архивом.
 - `SHA256SUMS.txt`: контрольные суммы файлов релиза.
 
 Portable запускается без установки, но настройки хранятся в профиле Windows и общие с установленной копией. Ключи сервисов шифруются Windows DPAPI. В дистрибутивах нет пользовательских ключей, координат профиля и персональных настроек.
@@ -74,6 +74,7 @@ Portable запускается без установки, но настройк
 
 | Устройство | Подключение | Результат |
 |---|---|---|
+| AJAZZ AK980 V2 | Приёмник 2,4 ГГц | Пользователь подтвердил чтение заряда в тестовой сборке. |
 | Lofree Flow Lite84 | Приёмник 2,4 ГГц | Чтение процента, флага зарядки и напряжения; проверка ответов и контрольной суммы. |
 | AJAZZ AK820 Pro | Bluetooth | Чтение процента через Windows, правильное имя и устранение дублей разных подключений. |
 | Logitech MX Master 3S | Logitech receiver | Чтение заряда; пропуск опроса не объявляет мышь спящей. |
